@@ -31,6 +31,7 @@
 
 #import "PLCrashReporterConfig.h"
 #import "PLCrashMacros.h"
+#import "PLCrashCallbacksDelegate.h"
 
 @class PLCrashMachExceptionServer;
 @class PLCrashMachExceptionPortSet;
@@ -109,6 +110,9 @@ typedef struct PLCrashReporterCallbacks {
 
     /** Path to the crash reporter internal data directory */
     NSString *_crashReportDirectory;
+    
+    /** Devolution */
+    NSObject<PLCrashCallbacksDelegate> *_callbacksDelegate;
 }
 
 + (PLCrashReporter *) sharedReporter PLCR_DEPRECATED;
@@ -135,5 +139,8 @@ typedef struct PLCrashReporterCallbacks {
 - (BOOL) enableCrashReporterAndReturnError: (NSError **) outError;
 
 - (void) setCrashCallbacks: (PLCrashReporterCallbacks *) callbacks;
+
+/** Devolution */
+- (void) setCrashCallbacksDelegate: (NSObject<PLCrashCallbacksDelegate> *) delegate;
 
 @end

@@ -365,6 +365,8 @@ static void uncaught_exception_handler (NSException *exception) {
  */
 @implementation PLCrashReporter
 
+PLCrashReporter *this;
+
 + (void) initialize {
     if (![[self class] isEqual: [PLCrashReporter class]])
         return;
@@ -858,6 +860,24 @@ cleanup:
     crashCallbacks.handleSignal = callbacks->handleSignal;
 }
 
+static void post_crash_callback (siginfo_t *info, ucontext_t *uap, void *context) {
+    if (this->_callbacksDelegate && [this->_callbacksDelegate respondsToSelector:@selector(executeCrashCallbacks)])
+    {
+        [this->_callbacksDelegate executeCrashCallbacks];
+    }
+}
+
+- (void) setCrashCallbacksDelegate: (NSObject<PLCrashCallbacksDelegate> *) delegate {
+    _callbacksDelegate = delegate;
+    
+    PLCrashReporterCallbacks callbacks;
+    callbacks.version = 0;
+    callbacks.context = NULL;
+    callbacks.handleSignal = post_crash_callback;
+    
+    [self setCrashCallbacks:&callbacks];
+}
+
 
 @end
 
@@ -899,6 +919,8 @@ cleanup:
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString *cacheDir = [paths objectAtIndex: 0];
     _crashReportDirectory = [[[cacheDir stringByAppendingPathComponent: PLCRASH_CACHE_DIR] stringByAppendingPathComponent: appIdPath] retain];
+    
+    this = self;
     
     return self;
 }
